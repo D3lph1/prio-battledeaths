@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="900"
+   height="600"
+   viewBox="0 0 238.13 158.75"
+   version="1.1"
+   id="svg10"
+   sodipodi:docname="Flag_of_PCP-Sendero_Luminoso.svg"
+   inkscape:version="1.1.2 (b8e25be833, 2022-02-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs14" />
+  <sodipodi:namedview
+     id="namedview12"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.21625"
+     inkscape:cx="839.30636"
+     inkscape:cy="508.67052"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g3000" />
+  <g
+     style="opacity:1"
+     id="g8">
+    <path
+       d="M0 138.25h238.13V297H0z"
+       style="opacity:1;fill:#c00;fill-opacity:1;stroke:none;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers stroke fill"
+       id="path2"
+       transform="translate(0 -138.25)" />
+    <g
+       id="g3000"
+       transform="matrix(0.26365351,0,0,0.27274402,-207.10227,1.4999488)">
+      <g
+         id="g2242"
+         transform="matrix(1.003087,0,0,0.9840718,-18.137122,-8.9613869)">
+        <path
+           d="m 909.28222,212.18948 -26.19068,30.13046 15.64764,15.74243 c -10.54084,14.20792 -17.20848,20.18993 -27.97491,35.10182 -9.16293,12.72685 16.87057,30.3199 24.81177,20.58308 l 27.9271,-37.70201 c 71.9671,53.66748 175.94796,23.23886 200.19146,-53.42896 26.9161,-83.14624 -37.2649,-141.64068 -104.6125,-155.172557 162.2158,92.287917 58.5408,259.627957 -70.13205,175.642877 l 4.47478,-7.13122 -20.2404,-17.60091 -6.69063,7.86237 z"
+           style="display:inline;fill:#ffe000;fill-opacity:1;stroke:#000000;stroke-width:1.09721px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0"
+           id="path4-8"
+           sodipodi:nodetypes="ccccccccccccc" />
+        <path
+           d="m 1021.4389,207.64848 c -4.276,-4.14005 -6.4903,-2.30003 -8.8193,-0.38333 -8.323,6.86177 -25.96159,23.65201 -26.72518,22.84701 -3.81783,1.68668 -6.98663,0.575 -10.0028,-1.30336 a 80.02287,80.347867 0 0 1 -30.35219,-29.55544 c -2.25255,-5.29008 0.0764,-10.81017 4.00878,-16.44524 18.32589,-25.95206 39.62967,-46.00069 62.04049,-63.71096 5.3452,-3.91006 10.8047,-5.78842 16.6078,-1.30336 a 93.156395,93.534731 0 0 1 24.8163,21.927 c 3.1689,4.86841 6.0705,9.85182 0,17.32692 l -16.7986,24.64871 c -2.6725,3.83339 -0.2291,6.6701 3.0924,9.31514 l 99.8377,84.56459 c 5.9177,16.59858 -10.8427,29.05711 -23.06,22.80868 -26.1143,-19.01361 -62.8806,-60.06923 -94.6454,-90.73636 z"
+           style="display:inline;fill:#ffe000;fill-opacity:1;stroke:#000000;stroke-width:1.09721px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0"
+           id="path6-8" />
+      </g>
+    </g>
+  </g>
+</svg>
