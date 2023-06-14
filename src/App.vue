@@ -45,6 +45,10 @@ let uniqueRecords = {}
 const records = ref({})
 const recordedMarkers = ref({})
 
+const timelinePaletteColors = reactive([])
+const timelinePaletteMax = ref(null)
+const timelinePaletteMin = ref(null)
+
 const type = computed(() => {
     if (currentBattle.value === null) {
         return ''
@@ -94,6 +98,61 @@ const cumulativeIntensity = computed(() => {
     }
 })
 
+
+function getRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+function componentToHex(c) {
+    const hex = c.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(obj) {
+    return "#" + componentToHex(obj.r) + componentToHex(obj.g) + componentToHex(obj.b);
+}
+
+function colorInterpolate(colorA, colorB, intval) {
+    const rgbA = getRgb(colorA),
+        rgbB = getRgb(colorB);
+    const colorVal = (prop) =>
+        Math.round(rgbA[prop] * (1 - intval) + rgbB[prop] * intval);
+    return {
+        r: colorVal('r'),
+        g: colorVal('g'),
+        b: colorVal('b'),
+    }
+}
+
+function timelineColor(decadeDeaths, k) {
+    let sum = Object.values(decadeDeaths).reduce(
+        (accumulator, currentValue) => accumulator + currentValue,
+        0,
+    )
+
+    let kSum = 0
+    let i = 0
+    for (const decade in decadeDeaths) {
+        kSum += decadeDeaths[decade]
+
+        if (k === i) {
+            break
+        }
+
+        i++
+    }
+
+    let ratio = kSum / sum
+
+    return rgbToHex(colorInterpolate('#e14040', '#ffb6b6', ratio))
+}
+
 function binarySearch(arr, val, threshold) {
     let start = 0;
     let end = arr.length - 1;
@@ -125,8 +184,9 @@ onMounted(() => {
                 return [Math.min.apply(Math, keys), Math.max.apply(Math, keys)]
             }) ()
 
-            const [epochs, decadesLabelsData, yearsLabelsData, battlesData, battleStep] = (() => {
+            const [epochs, decadesLabelsData, yearsLabelsData, battlesData, battleStep, decadeDeaths] = (() => {
                 let decades = {}
+                let decadeDeaths = {}
                 let partsSum = 0;
 
                 for (const k in data) {
@@ -136,6 +196,8 @@ onMounted(() => {
                             years: {},
                             sum: 0
                         }
+
+                        decadeDeaths[decade] = 0
                     }
 
                     decades[decade].years[k] = data[k]
@@ -202,6 +264,8 @@ onMounted(() => {
 
                             l++
                             id++
+
+                            decadeDeaths[k] += years[year][battle].bdeadbes
                         }
 
                         ///
@@ -231,8 +295,16 @@ onMounted(() => {
                     text: String(maxYear)
                 })
 
-                return [epochs, decadesLabelsData, yearsLabelsData, battlesData, battleStepRet]
+                return [epochs, decadesLabelsData, yearsLabelsData, battlesData, battleStepRet, decadeDeaths]
             })()
+
+            const decadeDeathsValues = Object.values(decadeDeaths)
+
+            timelinePaletteMax.value = decadeDeathsValues[0]
+            timelinePaletteMin.value = decadeDeathsValues[decadeDeathsValues.length - 1]
+            for (let i = 0; i < decadeDeathsValues.length; i++) {
+                timelinePaletteColors.push(timelineColor(decadeDeaths, i))
+            }
 
             const width = 1000;
             const height = 200;
@@ -260,7 +332,7 @@ onMounted(() => {
                 .attr('y', height / 4)
                 .attr('width', ({duration}) => duration)
                 .attr('height', height / 2)
-                .attr('fill', (d, i) => d3.interpolateRainbow(i / decadesLabelsData.length))
+                .attr('fill', (d, i) => timelineColor(decadeDeaths, i))
                 .on('click', (event) => {
                     console.log('Clicked', event)
                 })
@@ -885,8 +957,26 @@ function clearRecords() {
 
 <template>
 
-    <div id="title">
-        <a href="https://www.prio.org/data/1" target="_blank">PRIO Battledeaths</a> statistic visualization
+    <div style="position: relative">
+        <div id="title" class="row">
+            <div class="col-xs-7" style="font-size: 1.1rem">
+                <a href="https://www.prio.org/data/1" target="_blank">PRIO Battledeaths</a> statistic visualization
+            </div>
+
+
+            <div class="col-xs-5">
+                <span style="margin-right: 10px">Deaths:</span>
+                <span style="margin-right: 5px">{{ timelinePaletteMax }}</span>
+                <div style="display: inline-block">
+                    <div
+                        v-for="color in timelinePaletteColors"
+                        class="palette-cell"
+                        :style="{'background-color': color, 'display': 'inline-block', 'margin': '-2px 1px'}"
+                    ></div>
+                </div>
+                <span style="margin-left: 5px">{{ timelinePaletteMin }}</span>
+            </div>
+        </div>
     </div>
 
     <div id="spin">
@@ -1171,9 +1261,9 @@ function clearRecords() {
 <style>
 #title {
     position: absolute;
+    width: 100%;
     margin-top: 12px;
     text-align: center;
-    font-size: 1.1rem;
 }
 
 .toggle-recording {
