@@ -1157,6 +1157,11 @@ function clearRecords() {
             </div>
 
             <img :src="guideGifPath" alt="test" style="width: 700px">
+
+            <div style="max-width: 700px; text-align: justify">
+                The palette on the right specifies the colors for countries that have been involved in
+                conflicts a certain number of times (from 1 to 12 and more).
+            </div>
         </Modal>
 
         <ModalsContainer />
