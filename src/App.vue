@@ -10,6 +10,8 @@ const deathsHighModal = ref(false)
 const deathsBestModal = ref(false)
 const recordingModal = ref(false)
 
+const guideGifPath = import.meta.env.BASE_URL + '/guide.gif'
+
 import * as d3 from 'd3'
 import {computed, onMounted, reactive, ref} from "vue";
 import {flag} from "@/flag";
@@ -1154,7 +1156,7 @@ function clearRecords() {
                 Below is a visual demonstration of the use of visualization
             </div>
 
-            <img src="guide.gif" alt="test" style="width: 700px">
+            <img :src="guideGifPath" alt="test" style="width: 700px">
         </Modal>
 
         <ModalsContainer />
