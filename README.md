@@ -1,6 +1,8 @@
 # [PRIO Battledeaths](https://www.prio.org/data/1) statistic visualization
 
-Project for Data Visualization course at ITMO university.
+#### [Live demo](https://d3lph1.github.io/prio-battledeaths)
+
+Project for Data Visualization course at ITMO university written in D3.js and Vue 3.
 
 ## Project Setup
 

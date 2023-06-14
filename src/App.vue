@@ -1,6 +1,17 @@
 <script setup>
+import { ModalsContainer } from 'vue-final-modal'
+import Modal from "@/Modal.vue";
+
+const typeOfConflictModal = ref(false)
+const intensityLevelModal = ref(false)
+const cumulativeIntensityModal = ref(false)
+const deathsLowModal = ref(false)
+const deathsHighModal = ref(false)
+const deathsBestModal = ref(false)
+const recordingModal = ref(false)
+
 import * as d3 from 'd3'
-import {onMounted, reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import {flag} from "@/flag";
 import './seedrandom.min'
 import {countryNameOnGlobe} from "@/map";
@@ -16,6 +27,7 @@ const sideA2ndReact = reactive([])
 const sideBReact = reactive([])
 const sideB2ndReact = reactive([])
 
+const currentBattle = ref(null)
 let lat = null
 let lng = null
 let radius = null
@@ -29,6 +41,56 @@ let sideB2ndParticipants = []
 const recording = ref(false)
 let uniqueRecords = {}
 const records = ref({})
+const recordedMarkers = ref({})
+
+const type = computed(() => {
+    if (currentBattle.value === null) {
+        return ''
+    }
+
+    switch (currentBattle.value.payload.type) {
+        case 1:
+            return 'Extrasystemic'
+        case 2:
+            return 'Interstate'
+        case 3:
+            return 'Internal'
+        case 4:
+            return 'Internationalized internal'
+        default:
+            return ''
+    }
+})
+
+const intensityLevel = computed(() => {
+    if (currentBattle.value === null) {
+        return ''
+    }
+
+    switch (currentBattle.value.payload.int) {
+        case 1:
+            return 'Minor armed conflict'
+        case 2:
+            return 'War'
+        default:
+            return ''
+    }
+})
+
+const cumulativeIntensity = computed(() => {
+    if (currentBattle.value === null) {
+        return ''
+    }
+
+    switch (currentBattle.value.payload.cumint) {
+        case 0:
+            return '< 1000 battle-related deaths'
+        case 1:
+            return '> 1000 battle-related deaths'
+        default:
+            return ''
+    }
+})
 
 function binarySearch(arr, val, threshold) {
     let start = 0;
@@ -170,8 +232,6 @@ onMounted(() => {
                 return [epochs, decadesLabelsData, yearsLabelsData, battlesData, battleStepRet]
             })()
 
-            // console.log(battlesData)
-
             const width = 1000;
             const height = 200;
 
@@ -220,19 +280,10 @@ onMounted(() => {
                 .attr('fill-opacity', '0.5')
                 .attr('display', 'none')
                 .attr('data-index', ({index}) => index)
-            // .on('mouseenter', e => {
-            //     e.target.setAttribute('y', height / 6)
-            //     e.target.setAttribute('height', height / 1.5)
-            // })
-            // .on('mouseleave', e => {
-            //     e.target.setAttribute('y', height / 4)
-            //     e.target.setAttribute('height', height / 2)
-            // })
 
             const groupEventLabels = svg.append('g')
                 .attr('class', 'year-labels')
                 .attr('cursor', 'grab')
-            // .attr('opacity', '0')
 
             const eventLabels = groupEventLabels.selectAll('year-labels')
                 .data(yearsLabelsData)
@@ -307,12 +358,7 @@ onMounted(() => {
                 .scaleExtent(scaleExtent)
                 .translateExtent(translateExtent)
                 .on('zoom', (e) => {
-
-                    // console.log(d3.zoomTransform(svg))
-
                     const {k, x, y} = e.transform
-
-                    // console.log(`k: ${k}, x: ${x}`)
 
                     lastX = x
                     lastK = k
@@ -485,6 +531,8 @@ onMounted(() => {
             }
 
             function render(battle) {
+                currentBattle.value = battle
+
                 sideAReact.splice(0)
                 sideA2ndReact.splice(0)
                 sideBReact.splice(0)
@@ -528,6 +576,10 @@ onMounted(() => {
                 } else {
                     lat = battle.payload.coords.lat
                     lng = battle.payload.coords.lng
+
+                    if (recording.value) {
+                        addMarkerRecord(lat, lng, battle.payload.radius)
+                    }
                 }
 
                 radius = battle.payload.radius
@@ -570,19 +622,42 @@ onMounted(() => {
     }
 
     globeRerender = function() {
-        function getVisibility(d) {
+        function getVisibility() {
             const visible = path(
                 {type: 'Point', coordinates: [lng, lat]});
 
             return visible ? 'visible' : 'hidden';
         }
 
-        map.selectAll(`path`)
+        function getVisibilityCoord(lat, lng) {
+            const visible = path(
+                {type: 'Point', coordinates: [lng, lat]});
+
+            return visible ? 'visible' : 'hidden';
+        }
+
+        map.selectAll('circle.recorded-marker').remove()
+
+        map.selectAll('path')
             .attr('fill', 'white')
 
         for (const record in records.value) {
             map.select(`#country_${countryNameOnGlobe(record)}`)
                 .attr('fill', getPaletteColorForRecord(records.value[record]))
+        }
+
+        for (const marker in recordedMarkers.value) {
+            const [lat, lng] = marker.split(',')
+
+            map.append('circle')
+                .attr('cx', projection([lng, lat])[0])
+                .attr('cy', projection([lng, lat])[1])
+                .attr('r', 1 / (recordedMarkers.value[marker] / scale))
+                .attr('fill', '#3498db')
+                .attr('class', 'recorded-marker')
+                .attr('stroke', 'black')
+                .attr('strokeWidth', '1')
+                .attr('visibility', () => getVisibilityCoord(lat, lng))
         }
 
         for (const participant of sideAParticipants) {
@@ -624,7 +699,7 @@ onMounted(() => {
             .attr('cy', projection([lng, lat])[1])
             .attr('r', 3)
             .attr('fill', 'red')
-            .attr('visibility', getVisibility);
+            .attr('visibility', getVisibility)
 
         map.select('#marker-radius')
             .attr('cx', projection([lng, lat])[0])
@@ -632,7 +707,7 @@ onMounted(() => {
             .attr('r', 1 / (radius / scale))
             .attr('fill', 'red')
             .attr('fill-opacity', '0.2')
-            .attr('visibility', 'visible');
+            .attr('visibility', 'visible')
     }
 
     function globeZoom() {
@@ -654,6 +729,14 @@ onMounted(() => {
         }
 
         records.value[country]++
+    }
+
+    function addMarkerRecord(lat, lng, radius) {
+        const key = `${lat},${lng}`
+
+        if (!(key in recordedMarkers.value)) {
+            recordedMarkers.value[key] = radius
+        }
     }
 
     d3.json(import.meta.env.BASE_URL + '/world.json')
@@ -720,25 +803,6 @@ onMounted(() => {
                 .style('stroke', 'black')
                 .style('stroke-width', 0.3)
                 .style("opacity",0.8)
-
-            //Optional rotate
-            // d3.timer(function(elapsed) {
-            //     const rotate = projection.rotate()
-            //     const k = sensitivity / projection.scale()
-            //     projection.rotate([
-            //         rotate[0] - 1 * k,
-            //         rotate[1]
-            //     ])
-            //     path = d3.geoPath().projection(projection)
-            //     svg.selectAll("path").attr("d", path)
-            //
-            //
-            //     map.select('#test')
-            //         .attr('cx', d => projection([93.02, 25.35])[0])
-            //         .attr('cy', d => projection([93.02, 25.35])[1])
-            //         .attr('r', 5)
-            //         .attr('fill', 'red');
-            // }, 200)
 
             map
                 .append('circle')
@@ -811,6 +875,7 @@ function clearRecords() {
 
     uniqueRecords = {}
     records.value = {}
+    recordedMarkers.value = {}
     globeRerender()
 }
 
@@ -900,9 +965,72 @@ function clearRecords() {
                 </div>
             </div>
 
+            <div class="info">
+                <div class="row">
+                    <div class="col-xs-6" style="display: flex; justify-content: end; border-right: 2px solid black;">
+                        <span class="help" @click="typeOfConflictModal = true">?</span> Type of conflict
+                    </div>
+
+                    <div class="col-xs-6">
+                        {{ type }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6" style="display: flex; justify-content: end; border-right: 2px solid black;">
+                        <span class="help" @click="intensityLevelModal = true">?</span> Intensity level
+                    </div>
+
+                    <div class="col-xs-6">
+                        {{ intensityLevel }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6" style="display: flex; justify-content: end; border-right: 2px solid black;">
+                        <span class="help" @click="cumulativeIntensityModal = true">?</span> Cumulative intensity
+                    </div>
+
+                    <div class="col-xs-6">
+                        {{ cumulativeIntensity }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6" style="display: flex; justify-content: end; border-right: 2px solid black;">
+                        <span class="help" @click="deathsLowModal = true">?</span> Deaths (low)
+                    </div>
+
+                    <div class="col-xs-6" style="color: #f56565">
+                        {{ currentBattle?.payload.bdeadlow }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6" style="display: flex; justify-content: end; border-right: 2px solid black;">
+                        <span class="help" @click="deathsHighModal = true">?</span> Deaths (high)
+                    </div>
+
+                    <div class="col-xs-6" style="color: #f56565">
+                        {{ currentBattle?.payload.bdeadhig }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-xs-6" style="display: flex; justify-content: end; border-right: 2px solid black;">
+                        <span class="help" @click="deathsBestModal = true">?</span> Deaths (best)
+                    </div>
+
+                    <div class="col-xs-6" style="color: #f56565">
+                        {{ currentBattle?.payload.bdeadbes }}
+                    </div>
+                </div>
+            </div>
         </div>
         <div id="main-right" class="col-xs-5">
             <div>
+                <span class="help" @click="recordingModal = true">?</span>
+
                 <a @click="toggleRecording" class="toggle-recording">
                     {{ recording ? 'Stop recording' : 'Start recording' }}
                 </a>
@@ -930,6 +1058,106 @@ function clearRecords() {
                 >1</div>
             </div>
         </div>
+
+        <Modal
+            v-model="typeOfConflictModal"
+            title="Type of conflict"
+        >
+            There are four different types of conflict:
+
+            <ul>
+                <li>Extrasystemic</li>
+                <li>Interstate</li>
+                <li>Internal</li>
+                <li>Internationalized internal</li>
+            </ul>
+
+            <hr>
+
+            You can read more about it in the dataset documentation
+        </Modal>
+
+        <Modal
+            v-model="intensityLevelModal"
+            title="Intensity level"
+        >
+            <div style="max-width: 400px; text-align: justify">
+                The intensity level in the dyad per calendar year. Two different intensity levels are coded:
+                minor armed conflicts and wars
+            </div>
+
+            <hr>
+
+            You can read more about it in the dataset documentation
+        </Modal>
+
+        <Modal
+            v-model="cumulativeIntensityModal"
+            title="Cumulative intensity"
+        >
+            <div style="max-width: 400px; text-align: justify">
+                The intensity of the conflict, taking into consideration the conflict history.
+            </div>
+
+            <hr>
+
+            You can read more about it in the dataset documentation
+        </Modal>
+
+        <Modal
+            v-model="deathsLowModal"
+            title="Deaths (low)"
+        >
+            <div style="max-width: 400px; text-align: justify">
+                Low estimate of annual battle fatalities. Battle fatalities are defined as civilians and combatants killed in the course of combat in the following manner:
+            </div>
+
+            <hr>
+
+            You can read more about it in the dataset documentation
+        </Modal>
+
+        <Modal
+            v-model="deathsHighModal"
+            title="Deaths (high)"
+        >
+            <div style="max-width: 400px; text-align: justify">
+                High estimate of annual battle fatalities.
+            </div>
+
+            <hr>
+
+            You can read more about it in the dataset documentation
+        </Modal>
+
+        <Modal
+            v-model="deathsBestModal"
+            title="Deaths (best)"
+        >
+            <div style="max-width: 400px; text-align: justify">
+                Best estimate of annual battle fatalities.
+            </div>
+
+            <hr>
+
+            You can read more about it in the dataset documentation
+        </Modal>
+
+        <Modal
+            v-model="recordingModal"
+            title="Recording"
+        >
+            <div style="max-width: 700px; text-align: justify">
+                Place the scan head at the point where you want to start recording events. Click "Start recording".
+                Move the head or move/zoom the timeline so that events passing under the head are appeared on the globe.
+                Click "Stop recording" if you're done. You can also clear the globe by pressing the corresponding button.
+                Below is a visual demonstration of the use of visualization
+            </div>
+
+            <img src="guide.gif" alt="test" style="width: 700px">
+        </Modal>
+
+        <ModalsContainer />
     </div>
 </template>
 
@@ -1058,7 +1286,6 @@ function clearRecords() {
     margin: 1px 1px;
     border: none;
     border-radius: 2px;
-    cursor: pointer;
 }
 
 .palette-labels {
@@ -1069,5 +1296,16 @@ function clearRecords() {
 
 .palette-label {
     font-size: 0.75rem;
+}
+
+.info {
+    border-top: 2px solid black;
+}
+
+.help {
+    cursor: pointer;
+    color: #8d8d8d;
+    text-decoration: underline;
+    margin-right: 10px
 }
 </style>
