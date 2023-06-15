@@ -153,6 +153,14 @@ function timelineColor(decadeDeaths, k) {
     return rgbToHex(colorInterpolate('#e14040', '#ffb6b6', ratio))
 }
 
+function numberWithSpaces(x) {
+    if (x === undefined || x === null) {
+        return null
+    }
+
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
 function binarySearch(arr, val, threshold) {
     let start = 0;
     let end = arr.length - 1;
@@ -966,7 +974,7 @@ function clearRecords() {
 
             <div class="col-xs-5">
                 <span style="margin-right: 10px">Deaths:</span>
-                <span style="margin-right: 5px">{{ timelinePaletteMax }}</span>
+                <span style="margin-right: 5px">{{ numberWithSpaces(timelinePaletteMax) }}</span>
                 <div style="display: inline-block">
                     <div
                         v-for="color in timelinePaletteColors"
@@ -974,7 +982,7 @@ function clearRecords() {
                         :style="{'background-color': color, 'display': 'inline-block', 'margin': '-2px 1px'}"
                     ></div>
                 </div>
-                <span style="margin-left: 5px">{{ timelinePaletteMin }}</span>
+                <span style="margin-left: 5px">{{ numberWithSpaces(timelinePaletteMin) }}</span>
             </div>
         </div>
     </div>
@@ -1094,7 +1102,7 @@ function clearRecords() {
                     </div>
 
                     <div class="col-xs-6" style="color: #f56565">
-                        {{ currentBattle?.payload.bdeadlow }}
+                        {{ numberWithSpaces(currentBattle?.payload.bdeadlow) }}
                     </div>
                 </div>
 
@@ -1104,7 +1112,7 @@ function clearRecords() {
                     </div>
 
                     <div class="col-xs-6" style="color: #f56565">
-                        {{ currentBattle?.payload.bdeadhig }}
+                        {{ numberWithSpaces(currentBattle?.payload.bdeadhig) }}
                     </div>
                 </div>
 
@@ -1114,7 +1122,7 @@ function clearRecords() {
                     </div>
 
                     <div class="col-xs-6" style="color: #f56565">
-                        {{ currentBattle?.payload.bdeadbes }}
+                        {{ numberWithSpaces(currentBattle?.payload.bdeadbes) }}
                     </div>
                 </div>
             </div>
