@@ -1008,7 +1008,7 @@ function clearRecords() {
     <div id="timeline-container"></div>
 
     <div id="main" class="row">
-        <div id="main-left" class="col-xs-6">
+        <div id="main-left" class="col-xs-6" style="padding-right: 0">
 
             <p style="text-align: center; margin-bottom: 1rem">Sides</p>
 
@@ -1363,7 +1363,7 @@ function clearRecords() {
     display: flex;
     align-items: center;
 
-    flex-direction: column; justify-content: stretch; border-left: 1px dashed black;
+    flex-direction: column; justify-content: stretch; border-left: 2px solid black;
 }
 
 .square-color-example {
